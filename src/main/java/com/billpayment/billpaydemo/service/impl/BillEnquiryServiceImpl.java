@@ -4,6 +4,8 @@ import com.billpayment.billpaydemo.configuration.proprties.KhanepaniProperties;
 import com.billpayment.billpaydemo.dto.*;
 import com.billpayment.billpaydemo.entity.BillEnquiryLog;
 import com.billpayment.billpaydemo.entity.Client;
+import com.billpayment.billpaydemo.exception.DuplicatedRequestIdException;
+import com.billpayment.billpaydemo.exception.PaymentException;
 import com.billpayment.billpaydemo.exception.UnAuthorizedException;
 import com.billpayment.billpaydemo.repository.BillEnquiryLogRepository;
 import com.billpayment.billpaydemo.repository.ClientRepository;
@@ -53,6 +55,11 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
             throw new UnAuthorizedException("Username or password is incorrect.");
         }
 
+        BillEnquiryLog billEnquiryLogByRequestId = findBillEnquiryLogByRequestId(billEnquiryRequestDTO.getRequestId());
+        if (billEnquiryLogByRequestId != null) {
+            throw new DuplicatedRequestIdException("RequestId must be unique.");
+        }
+
         String token = tokenDetailsService.getToken(new TokenRequestDTO(
                 khanepaniProperties.getUsername(),
                 khanepaniProperties.getPassword()));
@@ -66,37 +73,47 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
 
     @SneakyThrows
     @Override
-//    @Transactional(dontRollbackOn = {Exception.class})
+    @Transactional(dontRollbackOn = {PaymentException.class})
     public BillPaymentResponseDTO payBill(BillPaymentRequestDTO billPaymentRequestDTO) {
         if (!isClientValid(billPaymentRequestDTO.getClientUsername(), billPaymentRequestDTO.getPassword())) {
             throw new UnAuthorizedException("Username or password is incorrect.");
         }
 
-        BillEnquiryLog billEnquiryLogByRequestId = billEnquiryLogRepository.findBillEnquiryLogByRequestId(
-                billPaymentRequestDTO.getRequestId());
+        BillEnquiryLog billEnquiryLogByRequestId = findBillEnquiryLogByRequestId(billPaymentRequestDTO.getRequestId());
         if (billEnquiryLogByRequestId == null) {
             throw new Exception("Invalid Request Id.");
         }
 
         String token = tokenDetailsService.validateAndRetrieveToken();
 
-        BillReceiptApiResponse billReceiptApiResponse = null;
-        String billLogStatus = null;
-        try {
-            billReceiptApiResponse = payAndGetReceipt(billPaymentRequestDTO, billEnquiryLogByRequestId, token);
-            billLogStatus = PAYMENT_SUCCESS;
-        } catch (Exception e) {
-            billLogStatus = PAYMENT_FAILURE;
-            throw e;
-        } finally {
-            updateBillEnquiryLogStatus(billEnquiryLogByRequestId, billLogStatus);
-        }
+        BillReceiptApiResponse billReceiptApiResponse = payBillAndUpdateBillEnquiryLog(billPaymentRequestDTO,
+                billEnquiryLogByRequestId, token);
 
         return BillPaymentResponseDTO.builder()
                 .responseCode(billReceiptApiResponse.getResponseCode())
                 .messgae(billReceiptApiResponse.getStrValues())
                 .requestId(billPaymentRequestDTO.getRequestId())
                 .build();
+    }
+
+    private BillReceiptApiResponse payBillAndUpdateBillEnquiryLog(BillPaymentRequestDTO billPaymentRequestDTO, BillEnquiryLog billEnquiryLogByRequestId, String token) {
+        BillReceiptApiResponse billReceiptApiResponse = null;
+        String billLogStatus = null;
+        try {
+            billReceiptApiResponse = payAndGetReceipt(billPaymentRequestDTO, billEnquiryLogByRequestId, token);
+            billLogStatus = PAYMENT_SUCCESS;
+        } catch (Exception exception) {
+            billLogStatus = PAYMENT_FAILURE;
+            throw new PaymentException("Invalid token.");
+        } finally {
+            updateBillEnquiryLogStatus(billEnquiryLogByRequestId, billLogStatus);
+        }
+        return billReceiptApiResponse;
+    }
+
+    private BillEnquiryLog findBillEnquiryLogByRequestId(String requestId) {
+        return billEnquiryLogRepository.findBillEnquiryLogByRequestId(
+                requestId);
     }
 
     private void updateBillEnquiryLogStatus(BillEnquiryLog billEnquiryLogByRequestId, String status) {
@@ -212,9 +229,8 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
                     httpEntity,
                     BillReceiptApiResponse.class);
             billReceiptApiResponse = responseEntity.getBody();
-        } catch (Exception e) {
-
-            throw e;
+        } catch (Exception exception) {
+            throw exception;
         }
         return billReceiptApiResponse;
     }

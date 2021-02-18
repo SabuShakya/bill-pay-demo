@@ -1,6 +1,8 @@
 package com.billpayment.billpaydemo.exception.handler;
 
 import com.billpayment.billpaydemo.dto.GenericErrorResponse;
+import com.billpayment.billpaydemo.exception.DuplicatedRequestIdException;
+import com.billpayment.billpaydemo.exception.PaymentException;
 import com.billpayment.billpaydemo.exception.TokenUnavailableException;
 import com.billpayment.billpaydemo.exception.UnAuthorizedException;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         GenericErrorResponse errorResponse = buildGenericErrorResponse(ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(PaymentException.class)
+    public final ResponseEntity<?> handlePaymentException(PaymentException ex) {
+        GenericErrorResponse errorResponse = buildGenericErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(DuplicatedRequestIdException.class)
+    public final ResponseEntity<?> handleDuplicateRequestIdException(DuplicatedRequestIdException ex) {
+        GenericErrorResponse errorResponse = buildGenericErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
 
     @ExceptionHandler(RuntimeException.class)
     public final ResponseEntity<?> handleRuntimeException(Exception ex) {
