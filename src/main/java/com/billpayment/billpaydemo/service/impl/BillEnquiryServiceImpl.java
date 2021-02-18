@@ -7,7 +7,6 @@ import com.billpayment.billpaydemo.entity.Client;
 import com.billpayment.billpaydemo.exception.UnAuthorizedException;
 import com.billpayment.billpaydemo.repository.BillEnquiryLogRepository;
 import com.billpayment.billpaydemo.repository.ClientRepository;
-import com.billpayment.billpaydemo.repository.TokenDetailsRepository;
 import com.billpayment.billpaydemo.service.BillEnquiryService;
 import com.billpayment.billpaydemo.service.TokenDetailsService;
 import lombok.SneakyThrows;
@@ -22,29 +21,26 @@ import java.util.Date;
 
 import static com.billpayment.billpaydemo.constants.ApiConstants.BILL_RECEIPT_V2;
 import static com.billpayment.billpaydemo.constants.ApiConstants.BILL_STATEMENT;
-import static com.billpayment.billpaydemo.constants.CommonConstants.*;
-import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.ENQUIRY_SUCCESS;
-import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_SUCCESS;
+import static com.billpayment.billpaydemo.constants.CommonConstants.AUTHORIZATION_HEADER;
+import static com.billpayment.billpaydemo.constants.CommonConstants.AUTHORIZATION_HEADER_PREFIX;
+import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.*;
 
 @Service
 @Transactional
 public class BillEnquiryServiceImpl implements BillEnquiryService {
 
     private final BillEnquiryLogRepository billEnquiryLogRepository;
-    private final TokenDetailsRepository tokenDetailsRepository;
     private final RestTemplate restTemplate;
     private final TokenDetailsService tokenDetailsService;
     private final ClientRepository clientRepository;
     private final KhanepaniProperties khanepaniProperties;
 
     public BillEnquiryServiceImpl(BillEnquiryLogRepository billEnquiryLogRepository,
-                                  TokenDetailsRepository tokenDetailsRepository,
                                   RestTemplate restTemplate,
                                   TokenDetailsService tokenDetailsService,
                                   ClientRepository clientRepository,
                                   KhanepaniProperties khanepaniProperties) {
         this.billEnquiryLogRepository = billEnquiryLogRepository;
-        this.tokenDetailsRepository = tokenDetailsRepository;
         this.restTemplate = restTemplate;
         this.tokenDetailsService = tokenDetailsService;
         this.clientRepository = clientRepository;
@@ -70,6 +66,7 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
 
     @SneakyThrows
     @Override
+//    @Transactional(dontRollbackOn = {Exception.class})
     public BillPaymentResponseDTO payBill(BillPaymentRequestDTO billPaymentRequestDTO) {
         if (!isClientValid(billPaymentRequestDTO.getClientUsername(), billPaymentRequestDTO.getPassword())) {
             throw new UnAuthorizedException("Username or password is incorrect.");
@@ -83,9 +80,17 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
 
         String token = tokenDetailsService.validateAndRetrieveToken();
 
-        BillReceiptApiResponse billReceiptApiResponse = payAndGetReceipt(billPaymentRequestDTO, billEnquiryLogByRequestId, token);
-
-        updateBillEnquiryLogStatus(billEnquiryLogByRequestId);
+        BillReceiptApiResponse billReceiptApiResponse = null;
+        String billLogStatus = null;
+        try {
+            billReceiptApiResponse = payAndGetReceipt(billPaymentRequestDTO, billEnquiryLogByRequestId, token);
+            billLogStatus = PAYMENT_SUCCESS;
+        } catch (Exception e) {
+            billLogStatus = PAYMENT_FAILURE;
+            throw e;
+        } finally {
+            updateBillEnquiryLogStatus(billEnquiryLogByRequestId, billLogStatus);
+        }
 
         return BillPaymentResponseDTO.builder()
                 .responseCode(billReceiptApiResponse.getResponseCode())
@@ -94,8 +99,8 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
                 .build();
     }
 
-    private void updateBillEnquiryLogStatus(BillEnquiryLog billEnquiryLogByRequestId) {
-        billEnquiryLogByRequestId.setStatus(PAYMENT_SUCCESS);
+    private void updateBillEnquiryLogStatus(BillEnquiryLog billEnquiryLogByRequestId, String status) {
+        billEnquiryLogByRequestId.setStatus(status);
         billEnquiryLogRepository.save(billEnquiryLogByRequestId);
     }
 
@@ -208,6 +213,7 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
                     BillReceiptApiResponse.class);
             billReceiptApiResponse = responseEntity.getBody();
         } catch (Exception e) {
+
             throw e;
         }
         return billReceiptApiResponse;

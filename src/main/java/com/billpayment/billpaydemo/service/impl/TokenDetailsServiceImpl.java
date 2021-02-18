@@ -54,12 +54,16 @@ public class TokenDetailsServiceImpl implements TokenDetailsService {
                     khanepaniProperties.getPassword()));
             return tokenResponseDTO.getAccess_token();
 
-        } else if (activeToken != null && !TokenValidationUtil.isTokenExpired(activeToken)) {
-            return activeToken.getAccessToken();
-
-        } else {
-            throw new TokenUnavailableException("Invalid token!");
         }
+
+        return activeToken.getAccessToken();
+
+//        else if (activeToken != null && !TokenValidationUtil.isTokenExpired(activeToken)) {
+//            return activeToken.getAccessToken();
+//
+//        } else {
+//            throw new TokenUnavailableException("Invalid token!");
+//        }
     }
 
     private TokenResponseDTO fetchTokenDetails(TokenRequestDTO tokenRequestDTO) {
