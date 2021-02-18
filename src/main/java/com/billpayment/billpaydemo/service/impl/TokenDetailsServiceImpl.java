@@ -1,5 +1,6 @@
 package com.billpayment.billpaydemo.service.impl;
 
+import com.billpayment.billpaydemo.configuration.proprties.KhanepaniProperties;
 import com.billpayment.billpaydemo.dto.TokenRequestDTO;
 import com.billpayment.billpaydemo.dto.TokenResponseDTO;
 import com.billpayment.billpaydemo.entity.TokenDetails;
@@ -20,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.billpayment.billpaydemo.constants.ApiConstants.FETCH_TOKEN;
-import static com.billpayment.billpaydemo.constants.CommonConstants.*;
+import static com.billpayment.billpaydemo.constants.CommonConstants.AUTHORIZATION_HEADER;
 
 @Service
 @Transactional
@@ -28,11 +29,13 @@ public class TokenDetailsServiceImpl implements TokenDetailsService {
 
     private final RestTemplate restTemplate;
     private final TokenDetailsRepository tokenDetailsRepository;
+    private final KhanepaniProperties khanepaniProperties;
 
     public TokenDetailsServiceImpl(RestTemplate restTemplate,
-                                   TokenDetailsRepository tokenDetailsRepository) {
+                                   TokenDetailsRepository tokenDetailsRepository, KhanepaniProperties khanepaniProperties) {
         this.restTemplate = restTemplate;
         this.tokenDetailsRepository = tokenDetailsRepository;
+        this.khanepaniProperties = khanepaniProperties;
     }
 
     @Override
@@ -46,7 +49,9 @@ public class TokenDetailsServiceImpl implements TokenDetailsService {
     public String validateAndRetrieveToken() {
         TokenDetails activeToken = findActiveToken();
         if (activeToken == null) {
-            TokenResponseDTO tokenResponseDTO = fetchTokenDetails(new TokenRequestDTO(USERNAME, PASSWORD));
+            TokenResponseDTO tokenResponseDTO = fetchTokenDetails(new TokenRequestDTO(
+                    khanepaniProperties.getUsername(),
+                    khanepaniProperties.getPassword()));
             return tokenResponseDTO.getAccess_token();
 
         } else if (activeToken != null && !TokenValidationUtil.isTokenExpired(activeToken)) {
@@ -60,13 +65,13 @@ public class TokenDetailsServiceImpl implements TokenDetailsService {
     private TokenResponseDTO fetchTokenDetails(TokenRequestDTO tokenRequestDTO) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromUriString(FETCH_TOKEN)
-                .queryParam("grant_type", GRANT_TYPE)
+                .queryParam("grant_type", khanepaniProperties.getGrantType())
                 .queryParam("username", tokenRequestDTO.getUsername())
                 .queryParam("password", tokenRequestDTO.getPassword());
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
-        httpHeaders.set(AUTHORIZATION_HEADER, "Basic " + BASIC_AUTH_HEADER);
+        httpHeaders.set(AUTHORIZATION_HEADER, "Basic " + khanepaniProperties.getAuthorizationHeader());
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 

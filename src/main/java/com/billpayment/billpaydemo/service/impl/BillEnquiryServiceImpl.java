@@ -1,5 +1,6 @@
 package com.billpayment.billpaydemo.service.impl;
 
+import com.billpayment.billpaydemo.configuration.proprties.KhanepaniProperties;
 import com.billpayment.billpaydemo.dto.*;
 import com.billpayment.billpaydemo.entity.BillEnquiryLog;
 import com.billpayment.billpaydemo.entity.Client;
@@ -9,6 +10,7 @@ import com.billpayment.billpaydemo.repository.ClientRepository;
 import com.billpayment.billpaydemo.repository.TokenDetailsRepository;
 import com.billpayment.billpaydemo.service.BillEnquiryService;
 import com.billpayment.billpaydemo.service.TokenDetailsService;
+import lombok.SneakyThrows;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -18,9 +20,11 @@ import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.Date;
 
+import static com.billpayment.billpaydemo.constants.ApiConstants.BILL_RECEIPT_V2;
 import static com.billpayment.billpaydemo.constants.ApiConstants.BILL_STATEMENT;
 import static com.billpayment.billpaydemo.constants.CommonConstants.*;
 import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.ENQUIRY_SUCCESS;
+import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_SUCCESS;
 
 @Service
 @Transactional
@@ -31,32 +35,68 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
     private final RestTemplate restTemplate;
     private final TokenDetailsService tokenDetailsService;
     private final ClientRepository clientRepository;
+    private final KhanepaniProperties khanepaniProperties;
 
     public BillEnquiryServiceImpl(BillEnquiryLogRepository billEnquiryLogRepository,
                                   TokenDetailsRepository tokenDetailsRepository,
                                   RestTemplate restTemplate,
                                   TokenDetailsService tokenDetailsService,
-                                  ClientRepository clientRepository) {
+                                  ClientRepository clientRepository,
+                                  KhanepaniProperties khanepaniProperties) {
         this.billEnquiryLogRepository = billEnquiryLogRepository;
         this.tokenDetailsRepository = tokenDetailsRepository;
         this.restTemplate = restTemplate;
         this.tokenDetailsService = tokenDetailsService;
         this.clientRepository = clientRepository;
+        this.khanepaniProperties = khanepaniProperties;
     }
 
     @Override
     public BillEnquiryResponseDTO fetchBillStatement(BillEnquiryRequestDTO billEnquiryRequestDTO) {
-        if (!isClientValid(billEnquiryRequestDTO)) {
+        if (!isClientValid(billEnquiryRequestDTO.getClientUsername(), billEnquiryRequestDTO.getPassword())) {
             throw new UnAuthorizedException("Username or password is incorrect.");
         }
 
-        String token = tokenDetailsService.getToken(new TokenRequestDTO(USERNAME, PASSWORD));
+        String token = tokenDetailsService.getToken(new TokenRequestDTO(
+                khanepaniProperties.getUsername(),
+                khanepaniProperties.getPassword()));
 
         BillStatementApiResponse billStatementApiResponse = fetchBillStatementDetails(billEnquiryRequestDTO, token);
 
         saveDataInBillEnquiryLog(billEnquiryRequestDTO, billStatementApiResponse);
 
         return buildBillEnquiryResponse(billEnquiryRequestDTO, billStatementApiResponse);
+    }
+
+    @SneakyThrows
+    @Override
+    public BillPaymentResponseDTO payBill(BillPaymentRequestDTO billPaymentRequestDTO) {
+        if (!isClientValid(billPaymentRequestDTO.getClientUsername(), billPaymentRequestDTO.getPassword())) {
+            throw new UnAuthorizedException("Username or password is incorrect.");
+        }
+
+        BillEnquiryLog billEnquiryLogByRequestId = billEnquiryLogRepository.findBillEnquiryLogByRequestId(
+                billPaymentRequestDTO.getRequestId());
+        if (billEnquiryLogByRequestId == null) {
+            throw new Exception("Invalid Request Id.");
+        }
+
+        String token = tokenDetailsService.validateAndRetrieveToken();
+
+        BillReceiptApiResponse billReceiptApiResponse = payAndGetReceipt(billPaymentRequestDTO, billEnquiryLogByRequestId, token);
+
+        updateBillEnquiryLogStatus(billEnquiryLogByRequestId);
+
+        return BillPaymentResponseDTO.builder()
+                .responseCode(billReceiptApiResponse.getResponseCode())
+                .messgae(billReceiptApiResponse.getStrValues())
+                .requestId(billPaymentRequestDTO.getRequestId())
+                .build();
+    }
+
+    private void updateBillEnquiryLogStatus(BillEnquiryLog billEnquiryLogByRequestId) {
+        billEnquiryLogByRequestId.setStatus(PAYMENT_SUCCESS);
+        billEnquiryLogRepository.save(billEnquiryLogByRequestId);
     }
 
     private BillEnquiryResponseDTO buildBillEnquiryResponse(BillEnquiryRequestDTO billEnquiryRequestDTO,
@@ -96,9 +136,9 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
         billEnquiryLogRepository.save(billEnquiryLog);
     }
 
-    private boolean isClientValid(BillEnquiryRequestDTO billEnquiryRequestDTO) {
-        Client client = clientRepository.findByUsername(billEnquiryRequestDTO.getClientUsername());
-        if (client != null && client.getPassword().equals(billEnquiryRequestDTO.getPassword())) {
+    private boolean isClientValid(String username, String password) {
+        Client client = clientRepository.findByUsername(username);
+        if (client != null && client.getPassword().equals(password)) {
             return true;
         }
         return false;
@@ -132,5 +172,44 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
             throw e;
         }
         return billStatementApiResponse;
+    }
+
+    private BillReceiptApiResponse payAndGetReceipt(BillPaymentRequestDTO billPaymentRequestDTO,
+                                                    BillEnquiryLog billEnquiryLog,
+                                                    String token) {
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder
+                .fromUriString(BILL_RECEIPT_V2)
+                .queryParam("AccountNo", billEnquiryLog.getAccountNumber())
+                .queryParam("Date", new Date())
+                .queryParam("Opening", "0")
+                .queryParam("Total", billPaymentRequestDTO.getTotalAmount())
+                .queryParam("Advance", billPaymentRequestDTO.getAdvanceAmount())
+                .queryParam("Paid", billPaymentRequestDTO.getPaidAmount())
+                .queryParam("Fine", billPaymentRequestDTO.getFine())
+                .queryParam("Discount", billPaymentRequestDTO.getDiscount())
+                .queryParam("LastMonth", billPaymentRequestDTO.getMonthTo())
+                .queryParam("LngBillCount", (billPaymentRequestDTO.getMonthTo() - billPaymentRequestDTO.getMonthFrom()) + 1);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+
+        httpHeaders.set(AUTHORIZATION_HEADER, AUTHORIZATION_HEADER_PREFIX + token);
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+
+        HttpEntity httpEntity = new HttpEntity(httpHeaders);
+
+        BillReceiptApiResponse billReceiptApiResponse = null;
+
+        try {
+            ResponseEntity<BillReceiptApiResponse> responseEntity = restTemplate.exchange(
+                    uriBuilder.toUriString(),
+                    HttpMethod.GET,
+                    httpEntity,
+                    BillReceiptApiResponse.class);
+            billReceiptApiResponse = responseEntity.getBody();
+        } catch (Exception e) {
+            throw e;
+        }
+        return billReceiptApiResponse;
     }
 }
