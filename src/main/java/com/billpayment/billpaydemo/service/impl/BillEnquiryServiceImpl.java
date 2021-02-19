@@ -1,5 +1,6 @@
 package com.billpayment.billpaydemo.service.impl;
 
+import com.billpayment.billpaydemo.aop.customAnnotation.LogMethod;
 import com.billpayment.billpaydemo.configuration.proprties.KhanepaniProperties;
 import com.billpayment.billpaydemo.dto.*;
 import com.billpayment.billpaydemo.entity.BillEnquiryLog;
@@ -12,6 +13,7 @@ import com.billpayment.billpaydemo.repository.ClientRepository;
 import com.billpayment.billpaydemo.service.BillEnquiryService;
 import com.billpayment.billpaydemo.service.TokenDetailsService;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -27,6 +29,7 @@ import static com.billpayment.billpaydemo.constants.CommonConstants.AUTHORIZATIO
 import static com.billpayment.billpaydemo.constants.CommonConstants.AUTHORIZATION_HEADER_PREFIX;
 import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.*;
 
+@Slf4j
 @Service
 @Transactional
 public class BillEnquiryServiceImpl implements BillEnquiryService {
@@ -49,6 +52,7 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
         this.khanepaniProperties = khanepaniProperties;
     }
 
+    @LogMethod
     @Override
     public BillEnquiryResponseDTO fetchBillStatement(BillEnquiryRequestDTO billEnquiryRequestDTO) {
         if (!isClientValid(billEnquiryRequestDTO.getClientUsername(), billEnquiryRequestDTO.getPassword())) {
@@ -57,6 +61,7 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
 
         BillEnquiryLog billEnquiryLogByRequestId = findBillEnquiryLogByRequestId(billEnquiryRequestDTO.getRequestId());
         if (billEnquiryLogByRequestId != null) {
+            log.error(":::: DuplicatedRequestIdException ::::");
             throw new DuplicatedRequestIdException("RequestId must be unique.");
         }
 
@@ -71,6 +76,7 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
         return buildBillEnquiryResponse(billEnquiryRequestDTO, billStatementApiResponse);
     }
 
+    @LogMethod
     @SneakyThrows
     @Override
     @Transactional(dontRollbackOn = {PaymentException.class})

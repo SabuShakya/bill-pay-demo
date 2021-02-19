@@ -20,7 +20,7 @@ public class SwaggerConfiguration {
                 .host("localhost:9090")
                 .groupName("Swagger Test")
                 .select()
-                .apis(RequestHandlerSelectors.any())
+                .apis(RequestHandlerSelectors.basePackage("com.billpayment.billpaydemo.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(metaData());
