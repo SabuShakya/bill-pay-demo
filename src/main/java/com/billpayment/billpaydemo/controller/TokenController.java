@@ -1,12 +1,13 @@
 package com.billpayment.billpaydemo.controller;
 
-import com.billpayment.billpaydemo.constants.ApiConstants;
 import com.billpayment.billpaydemo.dto.TokenRequestDTO;
-import com.billpayment.billpaydemo.dto.TokenResponseDTO;
 import com.billpayment.billpaydemo.service.TokenDetailsService;
 import io.swagger.annotations.Api;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static com.billpayment.billpaydemo.constants.ApiConstants.BASE;
 import static com.billpayment.billpaydemo.constants.ApiConstants.TokenConstants.GET_TOKEN;
