@@ -22,4 +22,8 @@ public interface ApiConstants {
         String FETCH_BILL_STATEMENT = "/billStatement";
         String PAY_BILL = "/payBill/receipt";
     }
+
+    interface ClientApiConstants {
+        String CREATE_CLIENT = "createClient";
+    }
 }

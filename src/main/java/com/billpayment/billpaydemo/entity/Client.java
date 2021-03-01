@@ -1,5 +1,6 @@
 package com.billpayment.billpaydemo.entity;
 
+import com.billpayment.billpaydemo.auditable.Auditable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +10,7 @@ import javax.persistence.*;
 @Setter
 @Entity
 @Table(name = "client")
-public class Client {
+public class Client extends Auditable<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

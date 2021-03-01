@@ -1,5 +1,6 @@
 package com.billpayment.billpaydemo.entity;
 
+import com.billpayment.billpaydemo.auditable.Auditable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +11,7 @@ import java.util.Date;
 @Table(name = "bill_enquiry_log")
 @Getter
 @Setter
-public class BillEnquiryLog {
+public class BillEnquiryLog extends Auditable<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

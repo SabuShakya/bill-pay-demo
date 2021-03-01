@@ -1,7 +1,9 @@
 package com.billpayment.billpaydemo.entity;
 
+import com.billpayment.billpaydemo.auditable.Auditable;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -10,7 +12,8 @@ import java.util.Date;
 @Table(name = "token_details")
 @Getter
 @Setter
-public class TokenDetails {
+@EntityListeners(AuditingEntityListener.class)
+public class TokenDetails extends Auditable<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
