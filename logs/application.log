@@ -739,3 +739,7 @@
 2021-03-01 07:26:35 INFO  BillPayDemoApplication:61 - Started BillPayDemoApplication in 6.972 seconds (JVM running for 7.952)
 2021-03-01 07:26:45 INFO  DispatcherServlet:525 - Initializing Servlet 'dispatcherServlet'
 2021-03-01 07:26:45 INFO  DispatcherServlet:547 - Completed initialization in 2 ms
+2021-03-01 07:35:02 INFO  ThreadPoolTaskExecutor:218 - Shutting down ExecutorService 'applicationTaskExecutor'
+2021-03-01 07:35:02 INFO  LocalContainerEntityManagerFactoryBean:651 - Closing JPA EntityManagerFactory for persistence unit 'default'
+2021-03-01 07:35:02 INFO  HikariDataSource:350 - HikariPool-1 - Shutdown initiated...
+2021-03-01 07:35:02 INFO  HikariDataSource:352 - HikariPool-1 - Shutdown completed.

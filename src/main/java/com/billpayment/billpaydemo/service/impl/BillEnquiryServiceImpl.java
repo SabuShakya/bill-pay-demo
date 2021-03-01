@@ -12,16 +12,19 @@ import com.billpayment.billpaydemo.repository.BillEnquiryLogRepository;
 import com.billpayment.billpaydemo.repository.ClientRepository;
 import com.billpayment.billpaydemo.service.BillEnquiryService;
 import com.billpayment.billpaydemo.service.TokenDetailsService;
+import com.billpayment.billpaydemo.utils.UriBuilderUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 
 import static com.billpayment.billpaydemo.constants.ApiConstants.BILL_RECEIPT_V2;
 import static com.billpayment.billpaydemo.constants.ApiConstants.BILL_STATEMENT;
@@ -174,10 +177,12 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
 
     private BillStatementApiResponse fetchBillStatementDetails(BillEnquiryRequestDTO billEnquiryRequestDTO,
                                                                String token) {
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder
-                .fromUriString(BILL_STATEMENT)
-                .queryParam("customerId", billEnquiryRequestDTO.getCustomerId())
-                .queryParam("mobileNo", billEnquiryRequestDTO.getMobileNumber());
+
+        HashMap<String, String> billEnquiryRequestParams = new HashMap<>();
+        billEnquiryRequestParams.put("customerId", String.valueOf(billEnquiryRequestDTO.getCustomerId()));
+        billEnquiryRequestParams.put("mobileNo", billEnquiryRequestDTO.getMobileNumber());
+
+        String uriBuilder = UriBuilderUtil.getUriWithQueryParameters(BILL_STATEMENT, billEnquiryRequestParams);
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -191,7 +196,7 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
 
         try {
             ResponseEntity<BillStatementApiResponse> responseEntity = restTemplate.exchange(
-                    uriBuilder.toUriString(),
+                    uriBuilder,
                     HttpMethod.GET,
                     httpEntity,
                     BillStatementApiResponse.class);
