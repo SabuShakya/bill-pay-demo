@@ -38,4 +38,7 @@ public class ChitrawanRequestLog extends Auditable<String> {
     @Column(name = "transaction_id")
     private String transactionId;
 
+    @Column(name = "reference_code")
+    private String referenceCode;
+
 }

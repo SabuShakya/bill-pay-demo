@@ -1,9 +1,9 @@
 package com.billpayment.billpaydemo.service.impl;
 
 import com.billpayment.billpaydemo.configuration.proprties.ChitrawanProperties;
-import com.billpayment.billpaydemo.constants.ApiConstants;
 import com.billpayment.billpaydemo.dto.ChitrawanPaymentActivateResponseDTO;
 import com.billpayment.billpaydemo.dto.ChitrawanPaymentRequestDTO;
+import com.billpayment.billpaydemo.dto.ChitrawanTxnStatusRequestDTO;
 import com.billpayment.billpaydemo.entity.ChitrawanRequestLog;
 import com.billpayment.billpaydemo.exception.CustomException;
 import com.billpayment.billpaydemo.exception.DuplicatedRequestIdException;
@@ -11,13 +11,19 @@ import com.billpayment.billpaydemo.repository.ChitrawanRequestLogRepository;
 import com.billpayment.billpaydemo.service.ChitrawanPaymentService;
 import com.billpayment.billpaydemo.utils.ChitrawanUtil;
 import lombok.AllArgsConstructor;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Optional;
+
 import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanVenderApiConstants.ACTIVATE_PAYMENT;
+import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanVenderApiConstants.CHECK_TRANSACTION_STATUS;
 import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_FAILURE;
 import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_SUCCESS;
 
@@ -36,29 +42,107 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
                 chitrawanPaymentRequestDTO.getRequestId());
         ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
 
+
         if (requestLog != null) {
-            try {
-                paymentActivateResponseDTO = makePaymentToChitrawan(chitrawanPaymentRequestDTO);
-                requestLog.setStatus(paymentActivateResponseDTO.isStatus() ? PAYMENT_SUCCESS : PAYMENT_FAILURE);
-                requestLog.setAmountPaid(paymentActivateResponseDTO.isStatus() ? chitrawanPaymentRequestDTO.getAmount()
-                        : 0);
-            } catch (Exception e) {
-                requestLog.setStatus(PAYMENT_FAILURE);
-            } finally {
-                requestLog.setTransactionId(chitrawanPaymentRequestDTO.getTransactionId());
-                chitrawanRequestLogRepository.save(requestLog);
-            }
+            paymentActivateResponseDTO = makePaymentAndUpdateLog(chitrawanPaymentRequestDTO,
+                    requestLog);
         } else {
             throw new DuplicatedRequestIdException("Invalid Request Id.");
         }
 
+        return checkStatusAndPrepareReturnValue(paymentActivateResponseDTO);
+    }
+
+    private ChitrawanPaymentActivateResponseDTO checkStatusAndPrepareReturnValue(
+            ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO) {
         if (paymentActivateResponseDTO.isStatus())
             return paymentActivateResponseDTO;
         else
             throw new CustomException(paymentActivateResponseDTO.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    private ChitrawanPaymentActivateResponseDTO makePaymentToChitrawan(ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO) {
+    private ChitrawanPaymentActivateResponseDTO makePaymentAndUpdateLog(ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO,
+                                                                        ChitrawanRequestLog requestLog) {
+
+        ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
+        String status = null;
+
+        try {
+            paymentActivateResponseDTO = makePaymentToChitrawan(chitrawanPaymentRequestDTO);
+
+            status = paymentActivateResponseDTO.isStatus() ? PAYMENT_SUCCESS : PAYMENT_FAILURE;
+
+            requestLog.setReferenceCode(paymentActivateResponseDTO.isStatus()
+                    ? paymentActivateResponseDTO.getReference_code() : null);
+
+        } catch (Exception e) {
+            status = PAYMENT_FAILURE;
+        } finally {
+            updateChitrawanRequestLog(chitrawanPaymentRequestDTO, requestLog, status);
+        }
+
+        return paymentActivateResponseDTO;
+    }
+
+    private void updateChitrawanRequestLog(ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO,
+                                           ChitrawanRequestLog requestLog,
+                                           String status) {
+        requestLog.setStatus(status);
+        requestLog.setAmountPaid(status.equals(PAYMENT_SUCCESS) ? chitrawanPaymentRequestDTO.getAmount()
+                : 0);
+        requestLog.setTransactionId(chitrawanPaymentRequestDTO.getTransactionId());
+
+        chitrawanRequestLogRepository.save(requestLog);
+    }
+
+    @Override
+    public ChitrawanPaymentActivateResponseDTO checkTransactionStatus(
+            ChitrawanTxnStatusRequestDTO chitrawanTxnStatusRequestDTO) {
+
+        validateIfTxnIdAndAmountIsValid(chitrawanTxnStatusRequestDTO);
+
+        ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO
+                = makeTransactionStatusRequestToChitrawan(chitrawanTxnStatusRequestDTO);
+
+        return checkStatusAndPrepareReturnValue(paymentActivateResponseDTO);
+    }
+
+    private void validateIfTxnIdAndAmountIsValid(ChitrawanTxnStatusRequestDTO chitrawanTxnStatusRequestDTO) {
+        Optional<ChitrawanRequestLog> requestLog = chitrawanRequestLogRepository.findByTransactionIdAndAmountPaid(
+                chitrawanTxnStatusRequestDTO.getTransactionId(), chitrawanTxnStatusRequestDTO.getAmount()
+        );
+
+        if (!requestLog.isPresent())
+            throw new CustomException("Invalid Transaction Id or amount.", HttpStatus.BAD_REQUEST);
+    }
+
+
+    private ChitrawanPaymentActivateResponseDTO makeTransactionStatusRequestToChitrawan(
+            ChitrawanTxnStatusRequestDTO chitrawanTxnStatusRequestDTO) {
+        MultiValueMap<String, String> requestData = new LinkedMultiValueMap<>();
+
+        requestData.add("amount", String.valueOf(chitrawanTxnStatusRequestDTO.getAmount()));
+        requestData.add("transaction_id", chitrawanTxnStatusRequestDTO.getTransactionId());
+        requestData.add("username", chitrawanTxnStatusRequestDTO.getUsername());
+
+        HttpEntity httpEntity = ChitrawanUtil.getEntityWithHeaderForRequest(chitrawanProperties, requestData);
+        ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
+
+        try {
+            ResponseEntity<ChitrawanPaymentActivateResponseDTO> responseEntity = restTemplate.postForEntity(
+                    CHECK_TRANSACTION_STATUS,
+                    httpEntity,
+                    ChitrawanPaymentActivateResponseDTO.class
+            );
+            paymentActivateResponseDTO = responseEntity.getBody();
+        } catch (Exception exception) {
+            throw new CustomException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return paymentActivateResponseDTO;
+    }
+
+    private ChitrawanPaymentActivateResponseDTO makePaymentToChitrawan(
+            ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO) {
         MultiValueMap<String, String> requestData = new LinkedMultiValueMap<>();
         requestData.add("package_id", chitrawanPaymentRequestDTO.getPackageId());
         requestData.add("amount", String.valueOf(chitrawanPaymentRequestDTO.getAmount()));

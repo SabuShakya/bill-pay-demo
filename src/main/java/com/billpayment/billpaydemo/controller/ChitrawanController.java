@@ -1,6 +1,7 @@
 package com.billpayment.billpaydemo.controller;
 
 import com.billpayment.billpaydemo.dto.ChitrawanPaymentRequestDTO;
+import com.billpayment.billpaydemo.dto.ChitrawanTxnStatusRequestDTO;
 import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsRequestDTO;
 import com.billpayment.billpaydemo.service.ChitrawanPaymentService;
 import com.billpayment.billpaydemo.service.ChitrawanUserDetailService;
@@ -11,17 +12,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.billpayment.billpaydemo.constants.ApiConstants.BASE;
-import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanApiConstants.CHITRAWAN_BILL_PAY;
-import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanApiConstants.GET_USER_DETAILS;
+import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanApiConstants.*;
 
 @RestController
 @RequestMapping(BASE)
-public class ChitrawanUserController {
+public class ChitrawanController {
 
     private final ChitrawanUserDetailService userDetailService;
     private final ChitrawanPaymentService chitrawanPaymentService;
 
-    public ChitrawanUserController(ChitrawanUserDetailService userDetailService, ChitrawanPaymentService chitrawanPaymentService) {
+    public ChitrawanController(ChitrawanUserDetailService userDetailService, ChitrawanPaymentService chitrawanPaymentService) {
         this.userDetailService = userDetailService;
         this.chitrawanPaymentService = chitrawanPaymentService;
     }
@@ -34,6 +34,11 @@ public class ChitrawanUserController {
     @PostMapping(CHITRAWAN_BILL_PAY)
     public ResponseEntity<?> paymentActivate(@RequestBody ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO) {
         return ResponseEntity.ok(chitrawanPaymentService.activatePayment(chitrawanPaymentRequestDTO));
+    }
+
+    @PostMapping(CHITRAWAN_CHECK_TRANSACTION_STATUS)
+    public ResponseEntity<?> checkStatus(@RequestBody ChitrawanTxnStatusRequestDTO chitrawanTxnStatusRequestDTO) {
+        return ResponseEntity.ok(chitrawanPaymentService.checkTransactionStatus(chitrawanTxnStatusRequestDTO));
     }
 
 }

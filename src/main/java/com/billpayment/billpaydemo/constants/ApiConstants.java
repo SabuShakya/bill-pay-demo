@@ -38,5 +38,6 @@ public interface ApiConstants {
         String CHITRAWAN_BASE = "/chitrawan";
         String GET_USER_DETAILS = CHITRAWAN_BASE + "/getUserDetails";
         String CHITRAWAN_BILL_PAY = "/payment";
+        String CHITRAWAN_CHECK_TRANSACTION_STATUS = "/checkTransactionStatus";
     }
 }
