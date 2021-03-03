@@ -24,6 +24,19 @@ public interface ApiConstants {
     }
 
     interface ClientApiConstants {
-        String CREATE_CLIENT = "createClient";
+        String CREATE_CLIENT = "/createClient";
+    }
+
+    interface ChitrawanVenderApiConstants {
+        String CHITRAWAN_API_BASE = "https://kcmstest.doennet.com.np/api/payment";
+        String FETCH_USER_DETAILS = CHITRAWAN_API_BASE + "/getUserDetails";
+        String ACTIVATE_PAYMENT = CHITRAWAN_API_BASE + "/activate";
+        String CHECK_TRANSACTION_STATUS = CHITRAWAN_API_BASE + "/checkTransactionStatus";
+    }
+
+    interface ChitrawanApiConstants {
+        String CHITRAWAN_BASE = "/chitrawan";
+        String GET_USER_DETAILS = CHITRAWAN_BASE + "/getUserDetails";
+        String CHITRAWAN_BILL_PAY = "/payment";
     }
 }

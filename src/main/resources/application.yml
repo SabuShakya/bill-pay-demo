@@ -3,3 +3,7 @@ khanepani:
   password: TESTTEST2323
   grantType: password
   authorizationHeader: YzFpM250SUQ6UzNjcmU3
+
+chitrawan:
+  authKey: X-API-KEY
+  authorizationHeader: 9cnYZnmpeD81zrxcSoBhPMYejyh3RWYQ
