@@ -1,9 +1,7 @@
 package com.billpayment.billpaydemo.utils;
 
 import com.billpayment.billpaydemo.configuration.proprties.ChitrawanProperties;
-import com.billpayment.billpaydemo.dto.ChitrawanPaymentRequestDTO;
-import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsRequestDTO;
-import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsResponse;
+import com.billpayment.billpaydemo.dto.*;
 import com.billpayment.billpaydemo.entity.ChitrawanRequestLog;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -11,10 +9,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_SUCCESS;
 
@@ -71,6 +71,37 @@ public class ChitrawanUtil {
         requestLog.setStatus(status);
         requestLog.setAmountPaid(status.equals(PAYMENT_SUCCESS) ? chitrawanPaymentRequestDTO.getAmount() : 0);
         requestLog.setTransactionId(chitrawanPaymentRequestDTO.getTransactionId());
+    }
+
+    public static ChitrawanUserDetailResponseDTO parseToUserDetailResponseDTO(
+            ChitrawanUserDetailsResponse userDetailsFromChitrawanVendor,
+            String requestId
+    ) {
+
+        ChitrawanResponseDetails details = userDetailsFromChitrawanVendor.getDetails();
+
+        List<PackageResponseDTO> packageResponseDTOS = details.getPackages()
+                .stream()
+                .map(chitrawanPackages -> new PackageResponseDTO(
+                        chitrawanPackages.getPackage_id(),
+                        chitrawanPackages.getPackage_name(),
+                        chitrawanPackages.getAmount(),
+                        chitrawanPackages.getCurrent()
+                ))
+                .collect(Collectors.toList());
+
+        return ChitrawanUserDetailResponseDTO.builder()
+                .userId(details.getCustomer().getUsername())
+                .name(details.getCustomer().getName())
+                .mobileNo(details.getCustomer().getMobile())
+                .accountStatus(details.getCustomer().getStatus())
+                .plan(details.getCurrent_subscription().getPackage())
+                .expiryDate(details.getCurrent_subscription().getEnd_date())
+                .planStatus(details.getCurrent_subscription().getStatus())
+                .requestId(requestId)
+                .payableAmount(details.getDue().getAmount())
+                .packages(packageResponseDTOS)
+                .build();
     }
 
 }

@@ -3,6 +3,7 @@ package com.billpayment.billpaydemo.service.impl;
 import com.billpayment.billpaydemo.configuration.proprties.ChitrawanProperties;
 import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsRequestDTO;
 import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsResponse;
+import com.billpayment.billpaydemo.dto.GenericResponseDTO;
 import com.billpayment.billpaydemo.entity.ChitrawanRequestLog;
 import com.billpayment.billpaydemo.exception.CustomException;
 import com.billpayment.billpaydemo.exception.DataDuplicateException;
@@ -36,7 +37,7 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
     private final ChitrawanRequestLogService chitrawanRequestLogService;
 
     @Override
-    public ChitrawanUserDetailsResponse fetchUserDetails(ChitrawanUserDetailsRequestDTO userDetailsRequestDTO) {
+    public GenericResponseDTO fetchUserDetails(ChitrawanUserDetailsRequestDTO userDetailsRequestDTO) {
 
         validateRequestIdDuplicity(userDetailsRequestDTO);
 
@@ -47,7 +48,11 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
             throw new CustomException(userDetailsFromChitrawanVendor.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
-        return userDetailsFromChitrawanVendor;
+        return GenericResponseDTO.builder()
+                .resultCode(userDetailsFromChitrawanVendor.getCode())
+                .resultDescription("User details obtained")
+                .data(parseToUserDetailResponseDTO(userDetailsFromChitrawanVendor,userDetailsRequestDTO.getRequestId()))
+                .build();
     }
 
     private ChitrawanUserDetailsResponse getChitrawanUserDetailsAndSaveDataInLog(
