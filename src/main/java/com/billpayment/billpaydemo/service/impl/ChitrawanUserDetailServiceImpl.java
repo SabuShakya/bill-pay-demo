@@ -6,10 +6,8 @@ import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsResponse;
 import com.billpayment.billpaydemo.entity.ChitrawanRequestLog;
 import com.billpayment.billpaydemo.exception.CustomException;
 import com.billpayment.billpaydemo.exception.DataDuplicateException;
-import com.billpayment.billpaydemo.repository.ChitrawanRequestLogRepository;
 import com.billpayment.billpaydemo.service.ChitrawanRequestLogService;
 import com.billpayment.billpaydemo.service.ChitrawanUserDetailService;
-import com.billpayment.billpaydemo.utils.ChitrawanUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -34,8 +32,6 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
     private final ChitrawanProperties chitrawanProperties;
 
     private final RestTemplate restTemplate;
-
-    private final ChitrawanRequestLogRepository chitrawanRequestLogRepository;
 
     private final ChitrawanRequestLogService chitrawanRequestLogService;
 
@@ -75,7 +71,8 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
     }
 
     private void validateRequestIdDuplicity(ChitrawanUserDetailsRequestDTO userDetailsRequestDTO) {
-        ChitrawanRequestLog requestLog = chitrawanRequestLogRepository.findByRequestId(userDetailsRequestDTO.getRequestId());
+        ChitrawanRequestLog requestLog = chitrawanRequestLogService.findChitrawanRequestLogByRequestId(
+                userDetailsRequestDTO.getRequestId());
 
         if (Objects.nonNull(requestLog))
             throw new DataDuplicateException("Request Id is invalid.");
@@ -96,7 +93,7 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
         MultiValueMap<String, String> requestData = new LinkedMultiValueMap<>();
         requestData.add("username", userDetailsRequestDTO.getCustomerUsername());
 
-        HttpEntity httpEntity = ChitrawanUtil.getEntityWithHeaderForRequest(chitrawanProperties, requestData);
+        HttpEntity httpEntity = getEntityWithHeaderForRequest.apply(chitrawanProperties, requestData);
 
         ResponseEntity<ChitrawanUserDetailsResponse> responseEntity = null;
 
@@ -111,6 +108,6 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
             throw e;
         }
 
-        return convertResponseEntityToUserDetailsResponse(responseEntity);
+        return convertResponseEntityToUserDetailsResponse.apply(responseEntity);
     }
 }

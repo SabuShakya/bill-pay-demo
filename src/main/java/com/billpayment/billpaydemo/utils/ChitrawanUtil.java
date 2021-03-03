@@ -1,6 +1,7 @@
 package com.billpayment.billpaydemo.utils;
 
 import com.billpayment.billpaydemo.configuration.proprties.ChitrawanProperties;
+import com.billpayment.billpaydemo.dto.ChitrawanPaymentRequestDTO;
 import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsRequestDTO;
 import com.billpayment.billpaydemo.dto.ChitrawanUserDetailsResponse;
 import com.billpayment.billpaydemo.entity.ChitrawanRequestLog;
@@ -11,18 +12,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_SUCCESS;
 
 public class ChitrawanUtil {
 
-    public static HttpEntity getEntityWithHeaderForRequest(ChitrawanProperties chitrawanProperties,
-                                                           MultiValueMap<String, String> requestData) {
+    public static BiFunction<ChitrawanProperties, MultiValueMap<String, String>, HttpEntity>
+            getEntityWithHeaderForRequest = (chitrawanProperties, requestData) -> {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         httpHeaders.set(chitrawanProperties.getAuthKey(), chitrawanProperties.getAuthorizationHeader());
 
         HttpEntity httpEntity = new HttpEntity(requestData, httpHeaders);
         return httpEntity;
-    }
+    };
 
     public static ChitrawanRequestLog parseToRequestLog(ChitrawanUserDetailsResponse userDetailsFromChitrawanVendor,
                                                         ChitrawanUserDetailsRequestDTO userDetailsRequestDTO,
@@ -43,8 +49,8 @@ public class ChitrawanUtil {
         return chitrawanRequestLog;
     }
 
-    public static ChitrawanUserDetailsResponse convertResponseEntityToUserDetailsResponse(
-            ResponseEntity<ChitrawanUserDetailsResponse> responseEntity) {
+    public static Function<ResponseEntity<ChitrawanUserDetailsResponse>, ChitrawanUserDetailsResponse>
+            convertResponseEntityToUserDetailsResponse = (responseEntity) -> {
 
         ChitrawanUserDetailsResponse chitrawanUserDetailsResponse = new ChitrawanUserDetailsResponse();
 
@@ -57,6 +63,14 @@ public class ChitrawanUtil {
         chitrawanUserDetailsResponse.setMessage(responseEntity.getBody().getMessage());
 
         return chitrawanUserDetailsResponse;
+    };
+
+    public static void updateRequestLogData(ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO,
+                                            ChitrawanRequestLog requestLog,
+                                            String status) {
+        requestLog.setStatus(status);
+        requestLog.setAmountPaid(status.equals(PAYMENT_SUCCESS) ? chitrawanPaymentRequestDTO.getAmount() : 0);
+        requestLog.setTransactionId(chitrawanPaymentRequestDTO.getTransactionId());
     }
 
 }

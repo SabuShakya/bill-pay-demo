@@ -27,6 +27,8 @@ import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanVender
 import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanVenderApiConstants.CHECK_TRANSACTION_STATUS;
 import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_FAILURE;
 import static com.billpayment.billpaydemo.constants.CommonConstants.BillEnquiryStatus.PAYMENT_SUCCESS;
+import static com.billpayment.billpaydemo.utils.ChitrawanUtil.getEntityWithHeaderForRequest;
+import static com.billpayment.billpaydemo.utils.ChitrawanUtil.updateRequestLogData;
 
 @Service
 @AllArgsConstructor
@@ -40,7 +42,7 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
     @Override
     public ChitrawanPaymentActivateResponseDTO activatePayment(ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO) {
 
-        ChitrawanRequestLog requestLog = chitrawanRequestLogRepository.findByRequestId(
+        ChitrawanRequestLog requestLog = chitrawanRequestLogService.findChitrawanRequestLogByRequestId(
                 chitrawanPaymentRequestDTO.getRequestId());
 
         ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
@@ -89,10 +91,8 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
     private void updateChitrawanRequestLog(ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO,
                                            ChitrawanRequestLog requestLog,
                                            String status) {
-        requestLog.setStatus(status);
-        requestLog.setAmountPaid(status.equals(PAYMENT_SUCCESS) ? chitrawanPaymentRequestDTO.getAmount()
-                : 0);
-        requestLog.setTransactionId(chitrawanPaymentRequestDTO.getTransactionId());
+
+        updateRequestLogData(chitrawanPaymentRequestDTO, requestLog, status);
 
         chitrawanRequestLogService.saveChitrawanRequestLog(requestLog);
     }
@@ -110,9 +110,11 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
     }
 
     private void validateIfTxnIdAndAmountIsValid(ChitrawanTxnStatusRequestDTO chitrawanTxnStatusRequestDTO) {
-        Optional<ChitrawanRequestLog> requestLog = chitrawanRequestLogRepository.findByTransactionIdAndAmountPaid(
-                chitrawanTxnStatusRequestDTO.getTransactionId(), chitrawanTxnStatusRequestDTO.getAmount()
-        );
+        Optional<ChitrawanRequestLog> requestLog =
+                chitrawanRequestLogService.findChitrawanRequestLogByTransactionIdAndAmountPaid(
+                        chitrawanTxnStatusRequestDTO.getTransactionId(),
+                        chitrawanTxnStatusRequestDTO.getAmount()
+                );
 
         if (!requestLog.isPresent())
             throw new CustomException("Invalid Transaction Id or amount.", HttpStatus.BAD_REQUEST);
@@ -127,7 +129,7 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
         requestData.add("transaction_id", chitrawanTxnStatusRequestDTO.getTransactionId());
         requestData.add("username", chitrawanTxnStatusRequestDTO.getUsername());
 
-        HttpEntity httpEntity = ChitrawanUtil.getEntityWithHeaderForRequest(chitrawanProperties, requestData);
+        HttpEntity httpEntity = getEntityWithHeaderForRequest.apply(chitrawanProperties, requestData);
         ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
 
         try {
@@ -151,7 +153,7 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
         requestData.add("transaction_id", chitrawanPaymentRequestDTO.getTransactionId());
         requestData.add("username", chitrawanPaymentRequestDTO.getUsername());
 
-        HttpEntity httpEntity = ChitrawanUtil.getEntityWithHeaderForRequest(chitrawanProperties, requestData);
+        HttpEntity httpEntity = getEntityWithHeaderForRequest.apply(chitrawanProperties, requestData);
 
         ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
 
