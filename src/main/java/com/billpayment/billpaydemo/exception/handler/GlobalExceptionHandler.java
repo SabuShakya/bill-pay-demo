@@ -39,8 +39,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(DuplicatedRequestIdException.class)
-    public final ResponseEntity<?> handleDuplicateRequestIdException(DuplicatedRequestIdException ex) {
+    @ExceptionHandler(DataDuplicateException.class)
+    public final ResponseEntity<?> handleDuplicateRequestIdException(DataDuplicateException ex) {
         GenericErrorResponse errorResponse = buildGenericErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }

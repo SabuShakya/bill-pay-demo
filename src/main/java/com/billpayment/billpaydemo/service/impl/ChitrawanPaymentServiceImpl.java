@@ -6,9 +6,10 @@ import com.billpayment.billpaydemo.dto.ChitrawanPaymentRequestDTO;
 import com.billpayment.billpaydemo.dto.ChitrawanTxnStatusRequestDTO;
 import com.billpayment.billpaydemo.entity.ChitrawanRequestLog;
 import com.billpayment.billpaydemo.exception.CustomException;
-import com.billpayment.billpaydemo.exception.DuplicatedRequestIdException;
+import com.billpayment.billpaydemo.exception.DataDuplicateException;
 import com.billpayment.billpaydemo.repository.ChitrawanRequestLogRepository;
 import com.billpayment.billpaydemo.service.ChitrawanPaymentService;
+import com.billpayment.billpaydemo.service.ChitrawanRequestLogService;
 import com.billpayment.billpaydemo.utils.ChitrawanUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpEntity;
@@ -34,6 +35,7 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
     private final ChitrawanProperties chitrawanProperties;
     private final ChitrawanRequestLogRepository chitrawanRequestLogRepository;
     private final RestTemplate restTemplate;
+    private final ChitrawanRequestLogService chitrawanRequestLogService;
 
     @Override
     public ChitrawanPaymentActivateResponseDTO activatePayment(ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO) {
@@ -47,7 +49,7 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
             paymentActivateResponseDTO = makePaymentAndUpdateLog(chitrawanPaymentRequestDTO,
                     requestLog);
         } else {
-            throw new DuplicatedRequestIdException("Invalid Request Id.");
+            throw new DataDuplicateException("Invalid Request Id.");
         }
 
         return checkStatusAndPrepareReturnValue(paymentActivateResponseDTO);
@@ -92,7 +94,7 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
                 : 0);
         requestLog.setTransactionId(chitrawanPaymentRequestDTO.getTransactionId());
 
-        chitrawanRequestLogRepository.save(requestLog);
+        chitrawanRequestLogService.saveChitrawanRequestLog(requestLog);
     }
 
     @Override

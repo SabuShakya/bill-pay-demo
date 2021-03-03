@@ -1233,3 +1233,9 @@
 2021-03-03 10:08:52 INFO  BillPayDemoApplication:61 - Started BillPayDemoApplication in 4.719 seconds (JVM running for 5.824)
 2021-03-03 10:32:09 INFO  DispatcherServlet:525 - Initializing Servlet 'dispatcherServlet'
 2021-03-03 10:32:09 INFO  DispatcherServlet:547 - Completed initialization in 6 ms
+2021-03-03 11:15:31 WARN  ExceptionHandlerExceptionResolver:207 - Resolved [com.billpayment.billpaydemo.exception.DuplicatedRequestIdException: Request Id is invalid.]
+2021-03-03 11:15:43 WARN  ExceptionHandlerExceptionResolver:207 - Resolved [com.billpayment.billpaydemo.exception.CustomException: Username does not exist]
+2021-03-03 11:17:25 WARN  ExceptionHandlerExceptionResolver:207 - Resolved [com.billpayment.billpaydemo.exception.CustomException: Transaction ID Already Exists]
+2021-03-03 11:17:34 WARN  ExceptionHandlerExceptionResolver:207 - Resolved [com.billpayment.billpaydemo.exception.CustomException: Transaction ID Already Exists]
+2021-03-03 11:18:25 WARN  ExceptionHandlerExceptionResolver:207 - Resolved [com.billpayment.billpaydemo.exception.CustomException: Transaction is scheduled]
+2021-03-03 11:18:55 WARN  ExceptionHandlerExceptionResolver:207 - Resolved [com.billpayment.billpaydemo.exception.CustomException: Invalid Transaction Id or amount.]

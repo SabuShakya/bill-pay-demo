@@ -5,7 +5,7 @@ import com.billpayment.billpaydemo.configuration.proprties.KhanepaniProperties;
 import com.billpayment.billpaydemo.dto.*;
 import com.billpayment.billpaydemo.entity.BillEnquiryLog;
 import com.billpayment.billpaydemo.entity.Client;
-import com.billpayment.billpaydemo.exception.DuplicatedRequestIdException;
+import com.billpayment.billpaydemo.exception.DataDuplicateException;
 import com.billpayment.billpaydemo.exception.PaymentException;
 import com.billpayment.billpaydemo.exception.UnAuthorizedException;
 import com.billpayment.billpaydemo.repository.BillEnquiryLogRepository;
@@ -64,7 +64,7 @@ public class BillEnquiryServiceImpl implements BillEnquiryService {
         BillEnquiryLog billEnquiryLogByRequestId = findBillEnquiryLogByRequestId(billEnquiryRequestDTO.getRequestId());
         if (billEnquiryLogByRequestId != null) {
             log.error(":::: DuplicatedRequestIdException ::::");
-            throw new DuplicatedRequestIdException("RequestId must be unique.");
+            throw new DataDuplicateException("RequestId must be unique.");
         }
 
         String token = tokenDetailsService.getToken(new TokenRequestDTO(
