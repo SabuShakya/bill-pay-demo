@@ -40,9 +40,8 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
 
         validateRequestIdDuplicity(userDetailsRequestDTO);
 
-        ChitrawanUserDetailsResponse userDetailsFromChitrawanVendor = null;
-
-        userDetailsFromChitrawanVendor = getChitrawanUserDetailsAndSaveDataInLog(userDetailsRequestDTO);
+        ChitrawanUserDetailsResponse userDetailsFromChitrawanVendor =
+                getChitrawanUserDetailsAndSaveDataInLog(userDetailsRequestDTO);
 
         if (!(userDetailsFromChitrawanVendor.isStatus())) {
             throw new CustomException(userDetailsFromChitrawanVendor.getMessage(), HttpStatus.BAD_REQUEST);
