@@ -40,8 +40,8 @@ public class ChitrawanPaymentServiceImpl implements ChitrawanPaymentService {
 
         ChitrawanRequestLog requestLog = chitrawanRequestLogRepository.findByRequestId(
                 chitrawanPaymentRequestDTO.getRequestId());
-        ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
 
+        ChitrawanPaymentActivateResponseDTO paymentActivateResponseDTO = null;
 
         if (requestLog != null) {
             paymentActivateResponseDTO = makePaymentAndUpdateLog(chitrawanPaymentRequestDTO,

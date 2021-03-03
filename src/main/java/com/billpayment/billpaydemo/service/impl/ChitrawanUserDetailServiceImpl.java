@@ -41,7 +41,21 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
         validateIfRequestIdAlreadyExists(userDetailsRequestDTO);
 
         ChitrawanUserDetailsResponse userDetailsFromChitrawanVendor = null;
+
+        userDetailsFromChitrawanVendor = getChitrawanUserDetailsAndSaveDataInLog(userDetailsRequestDTO);
+
+        if (!(userDetailsFromChitrawanVendor.isStatus())) {
+            throw new CustomException(userDetailsFromChitrawanVendor.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        return userDetailsFromChitrawanVendor;
+    }
+
+    private ChitrawanUserDetailsResponse getChitrawanUserDetailsAndSaveDataInLog(
+            ChitrawanUserDetailsRequestDTO userDetailsRequestDTO) {
+
         String status = null;
+        ChitrawanUserDetailsResponse userDetailsFromChitrawanVendor = null;
 
         try {
             userDetailsFromChitrawanVendor = getUserDetailsFromChitrawanVendor(userDetailsRequestDTO);
@@ -51,10 +65,6 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
             throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
             saveChitrawanDataToLog(userDetailsRequestDTO, userDetailsFromChitrawanVendor, status);
-        }
-
-        if (!(userDetailsFromChitrawanVendor.isStatus())) {
-            throw new CustomException(userDetailsFromChitrawanVendor.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
         return userDetailsFromChitrawanVendor;
@@ -76,9 +86,9 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
             chitrawanRequestLog.setCustomerUsername(userDetailsFromChitrawanVendor.getDetails().getCustomer().getUsername());
             chitrawanRequestLog.setCustomerMobile(userDetailsFromChitrawanVendor.getDetails().getCustomer().getMobile());
             chitrawanRequestLog.setDueAmount(userDetailsFromChitrawanVendor.getDetails().getDue().getAmount());
-        } else {
+        } else
             chitrawanRequestLog.setCustomerUsername(userDetailsRequestDTO.getCustomerUsername());
-        }
+
         chitrawanRequestLog.setRequestId(userDetailsRequestDTO.getRequestId());
         chitrawanRequestLog.setStatus(status);
 
