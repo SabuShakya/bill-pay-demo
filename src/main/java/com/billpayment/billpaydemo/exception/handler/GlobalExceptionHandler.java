@@ -2,14 +2,17 @@ package com.billpayment.billpaydemo.exception.handler;
 
 import com.billpayment.billpaydemo.dto.GenericErrorResponse;
 import com.billpayment.billpaydemo.exception.*;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.Date;
+import static com.billpayment.billpaydemo.utils.ExceptionResponseUtil.buildGenericErrorResponse;
+import static com.billpayment.billpaydemo.utils.ExceptionResponseUtil.getExceptionMessageForMethodArgumentNotValid;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -56,11 +59,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private GenericErrorResponse buildGenericErrorResponse(String message, HttpStatus status) {
-        return GenericErrorResponse.builder()
-                .message(message)
-                .responseStatus(status)
-                .timeStamp(new Date())
-                .build();
+    /*
+     * ResponseEntityExceptionHandler already has this method so need to override it.
+     */
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                                                                  HttpHeaders headers,
+                                                                  HttpStatus status,
+                                                                  WebRequest request) {
+
+        return new ResponseEntity<>(
+                buildGenericErrorResponse(getExceptionMessageForMethodArgumentNotValid(ex),
+                        HttpStatus.BAD_REQUEST), status);
     }
+
 }

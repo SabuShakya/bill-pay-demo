@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+
 import static com.billpayment.billpaydemo.constants.ApiConstants.BASE;
 import static com.billpayment.billpaydemo.constants.ApiConstants.ChitrawanApiConstants.*;
 
@@ -32,12 +34,12 @@ public class ChitrawanController {
     }
 
     @PostMapping(CHITRAWAN_BILL_PAY)
-    public ResponseEntity<?> paymentActivate(@RequestBody ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO) {
+    public ResponseEntity<?> paymentActivate(@Valid @RequestBody ChitrawanPaymentRequestDTO chitrawanPaymentRequestDTO) {
         return ResponseEntity.ok(chitrawanPaymentService.activatePayment(chitrawanPaymentRequestDTO));
     }
 
     @PostMapping(CHITRAWAN_CHECK_TRANSACTION_STATUS)
-    public ResponseEntity<?> checkStatus(@RequestBody ChitrawanTxnStatusRequestDTO chitrawanTxnStatusRequestDTO) {
+    public ResponseEntity<?> checkStatus(@Valid @RequestBody ChitrawanTxnStatusRequestDTO chitrawanTxnStatusRequestDTO) {
         return ResponseEntity.ok(chitrawanPaymentService.checkTransactionStatus(chitrawanTxnStatusRequestDTO));
     }
 
