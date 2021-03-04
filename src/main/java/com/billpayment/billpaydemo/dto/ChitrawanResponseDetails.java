@@ -3,11 +3,12 @@ package com.billpayment.billpaydemo.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @Setter
-public class ChitrawanResponseDetails {
+public class ChitrawanResponseDetails implements Serializable {
 
     private ChitrawanCustomerDetails customer;
 

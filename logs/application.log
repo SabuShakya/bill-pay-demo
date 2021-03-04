@@ -1306,3 +1306,33 @@
 2021-03-03 20:58:24 INFO  DispatcherServlet:525 - Initializing Servlet 'dispatcherServlet'
 2021-03-03 20:58:24 INFO  DispatcherServlet:547 - Completed initialization in 1 ms
 2021-03-03 20:58:24 WARN  ExceptionHandlerExceptionResolver:207 - Resolved [com.billpayment.billpaydemo.exception.DataDuplicateException: Request Id is invalid.]
+2021-03-03 21:09:09 INFO  ThreadPoolTaskExecutor:218 - Shutting down ExecutorService 'applicationTaskExecutor'
+2021-03-03 21:09:09 INFO  LocalContainerEntityManagerFactoryBean:651 - Closing JPA EntityManagerFactory for persistence unit 'default'
+2021-03-03 21:09:09 INFO  HikariDataSource:350 - HikariPool-1 - Shutdown initiated...
+2021-03-03 21:09:09 INFO  HikariDataSource:352 - HikariPool-1 - Shutdown completed.
+2021-03-04 10:01:58 INFO  BillPayDemoApplication:55 - Starting BillPayDemoApplication using Java 15.0.2 on f1soft-sabu with PID 8210 (/home/f1soft/Workspace/BACKEND_LEARNING/bill-pay-demo/target/classes started by f1soft in /home/f1soft/Workspace/BACKEND_LEARNING/bill-pay-demo)
+2021-03-04 10:01:58 INFO  BillPayDemoApplication:660 - No active profile set, falling back to default profiles: default
+2021-03-04 10:01:58 INFO  DevToolsPropertyDefaultsPostProcessor:255 - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2021-03-04 10:01:58 INFO  DevToolsPropertyDefaultsPostProcessor:255 - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2021-03-04 10:02:00 INFO  RepositoryConfigurationDelegate:128 - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2021-03-04 10:02:01 INFO  RepositoryConfigurationDelegate:188 - Finished Spring Data repository scanning in 109 ms. Found 4 JPA repository interfaces.
+2021-03-04 10:02:02 INFO  TomcatWebServer:108 - Tomcat initialized with port(s): 8080 (http)
+2021-03-04 10:02:02 INFO  ServletWebServerApplicationContext:289 - Root WebApplicationContext: initialization completed in 3898 ms
+2021-03-04 10:02:02 INFO  LogHelper:31 - HHH000204: Processing PersistenceUnitInfo [name: default]
+2021-03-04 10:02:02 INFO  Version:44 - HHH000412: Hibernate ORM core version 5.4.27.Final
+2021-03-04 10:02:03 INFO  Version:56 - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2021-03-04 10:02:03 INFO  HikariDataSource:110 - HikariPool-1 - Starting...
+2021-03-04 10:02:04 INFO  HikariDataSource:123 - HikariPool-1 - Start completed.
+2021-03-04 10:02:04 INFO  Dialect:175 - HHH000400: Using dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+2021-03-04 10:02:06 INFO  JtaPlatformInitiator:52 - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2021-03-04 10:02:06 INFO  LocalContainerEntityManagerFactoryBean:437 - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2021-03-04 10:02:07 INFO  OptionalLiveReloadServer:58 - LiveReload server is running on port 35729
+2021-03-04 10:02:07 WARN  JpaBaseConfiguration$JpaWebConfiguration:221 - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2021-03-04 10:02:08 INFO  DefaultSecurityFilterChain:51 - Will secure any request with [org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@37449866, org.springframework.security.web.context.SecurityContextPersistenceFilter@145e4e58, org.springframework.security.web.header.HeaderWriterFilter@6425902f, org.springframework.security.web.authentication.logout.LogoutFilter@59597de5, com.billpayment.billpaydemo.filter.JwtRequestFilter@47f4a57e, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5ce85fa3, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7ad112f0, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@1984a7e1, org.springframework.security.web.session.SessionManagementFilter@6797d5d1, org.springframework.security.web.access.ExceptionTranslationFilter@2c03c678, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@1d36d46e]
+2021-03-04 10:02:08 INFO  PropertySourcedRequestMappingHandlerMapping:69 - Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2Controller#getDocumentation(String, HttpServletRequest)]
+2021-03-04 10:02:08 INFO  ThreadPoolTaskExecutor:181 - Initializing ExecutorService 'applicationTaskExecutor'
+2021-03-04 10:02:08 INFO  TomcatWebServer:220 - Tomcat started on port(s): 8080 (http) with context path ''
+2021-03-04 10:02:08 INFO  DocumentationPluginsBootstrapper:160 - Context refreshed
+2021-03-04 10:02:08 INFO  DocumentationPluginsBootstrapper:163 - Found 1 custom documentation plugin(s)
+2021-03-04 10:02:08 INFO  ApiListingReferenceScanner:41 - Scanning for api listing references
+2021-03-04 10:02:09 INFO  BillPayDemoApplication:61 - Started BillPayDemoApplication in 11.589 seconds (JVM running for 15.107)

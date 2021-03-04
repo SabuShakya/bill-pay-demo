@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
-public class ChitrawanCurrentSubscription {
+public class ChitrawanCurrentSubscription implements Serializable {
 
     @JsonProperty("package")
     private String Package;
