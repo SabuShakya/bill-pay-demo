@@ -6,6 +6,7 @@ import com.billpayment.billpaydemo.dto.BillPaymentRequestDTO;
 import com.billpayment.billpaydemo.dto.BillPaymentResponseDTO;
 import com.billpayment.billpaydemo.service.BillEnquiryService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class BillEnquiryController {
     }
 
     @PutMapping(FETCH_BILL_STATEMENT)
+    @ApiOperation(value = "This method is used to get the bill details.")
     public ResponseEntity<BillEnquiryResponseDTO> getBillStatement(@RequestBody BillEnquiryRequestDTO billEnquiryRequestDTO) {
         return ResponseEntity.ok(billEnquiryService.fetchBillStatement(billEnquiryRequestDTO));
     }
