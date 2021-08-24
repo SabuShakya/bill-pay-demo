@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ChitrawanPaymentActivateResponseDTO  {
+public class ChitrawanPaymentActivateResponseDTO {
 
     private boolean status;
 

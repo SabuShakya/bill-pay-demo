@@ -24,7 +24,7 @@ public class TokenController {
     }
 
     @PostMapping(GET_TOKEN)
-    public ResponseEntity<String> getToken(@RequestBody TokenRequestDTO tokenRequestDTO){
+    public ResponseEntity<String> getToken(@RequestBody TokenRequestDTO tokenRequestDTO) {
         return ResponseEntity.ok(tokenDetailsService.getToken(tokenRequestDTO));
     }
 }

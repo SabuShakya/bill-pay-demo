@@ -14,7 +14,7 @@ public class TokenValidationUtil {
 
         long timeDifferenceInMilliseconds = currentDate.getTime() - requestedDate.getTime();
 
-        if (timeDifferenceInMilliseconds> tokenDetails.getExpiresIn())
+        if (timeDifferenceInMilliseconds > tokenDetails.getExpiresIn())
             return true;
 
         return false;

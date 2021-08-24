@@ -18,10 +18,10 @@ public class UserAuthenticationService implements UserDetailsService {
     private final ClientRepository clientRepository;
 
     /*
-    * The core idea is to return the User instance with populated values
-    * which will be used by the authentication manager to authenticate.
-    * so it acts as a provider
-    * */
+     * The core idea is to return the User instance with populated values
+     * which will be used by the authentication manager to authenticate.
+     * so it acts as a provider
+     * */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Client user = clientRepository.findByUsername(username);

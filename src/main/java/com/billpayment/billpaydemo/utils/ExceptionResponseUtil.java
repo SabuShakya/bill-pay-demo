@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class ExceptionResponseUtil {
 
-    public  static String getExceptionMessageForMethodArgumentNotValid(MethodArgumentNotValidException ex){
+    public static String getExceptionMessageForMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         List<String> violations = ex.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> (fieldError.getField() + ": " + fieldError.getDefaultMessage()))
                 .collect(Collectors.toList());

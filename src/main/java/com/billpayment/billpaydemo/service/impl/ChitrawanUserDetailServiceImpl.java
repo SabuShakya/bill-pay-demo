@@ -51,7 +51,7 @@ public class ChitrawanUserDetailServiceImpl implements ChitrawanUserDetailServic
         return GenericResponseDTO.builder()
                 .resultCode(userDetailsFromChitrawanVendor.getCode())
                 .resultDescription("User details obtained")
-                .data(parseToUserDetailResponseDTO(userDetailsFromChitrawanVendor,userDetailsRequestDTO.getRequestId()))
+                .data(parseToUserDetailResponseDTO(userDetailsFromChitrawanVendor, userDetailsRequestDTO.getRequestId()))
                 .build();
     }
 

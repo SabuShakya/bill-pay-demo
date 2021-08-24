@@ -1,6 +1,6 @@
 <included>
     <property name="HOME_LOG_PATH" value="/home/f1soft/Workspace/BACKEND_LEARNING/bill-pay-demo/logs"/>
-    <property name="PATTERN_FILE" value="%-4relative [%thread] %-5level %logger{35} - %msg%n" />
+    <property name="PATTERN_FILE" value="%-4relative [%thread] %-5level %logger{35} - %msg%n"/>
 
 
     <appender name="springLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -20,7 +20,7 @@
 
     <logger name="org.springframework" level="info">
         <appender-ref ref="springLog"/>
-<!--        <appender-ref ref="console"/>-->
+        <!--        <appender-ref ref="console"/>-->
     </logger>
 
 </included>

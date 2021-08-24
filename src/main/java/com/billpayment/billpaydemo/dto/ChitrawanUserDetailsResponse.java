@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class ChitrawanUserDetailsResponse  implements Serializable {
+public class ChitrawanUserDetailsResponse implements Serializable {
 
     private boolean status;
 

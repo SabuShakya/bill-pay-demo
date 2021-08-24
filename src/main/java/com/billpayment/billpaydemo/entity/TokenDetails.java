@@ -17,10 +17,10 @@ public class TokenDetails extends Auditable<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id",nullable = false)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "access_token",nullable = false)
+    @Column(name = "access_token", nullable = false)
     private String accessToken;
 
     @Column(name = "token_type")

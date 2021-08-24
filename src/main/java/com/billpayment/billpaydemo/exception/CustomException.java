@@ -10,6 +10,7 @@ import java.util.Date;
 public class CustomException extends RuntimeException {
 
     private GenericErrorResponse errorResponse;
+
     public CustomException(String message, HttpStatus httpStatus) {
         super(message);
         setErrorResponse(message, httpStatus);

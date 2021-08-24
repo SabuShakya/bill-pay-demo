@@ -8,10 +8,10 @@ import static com.billpayment.billpaydemo.constants.ApiConstants.BILL_STATEMENT;
 
 public class UriBuilderUtil {
 
-    public static String getUriWithQueryParameters(String uri, Map<String,String> queryparams) {
+    public static String getUriWithQueryParameters(String uri, Map<String, String> queryparams) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromUriString(uri);
-        queryparams.forEach((key,value)-> uriBuilder.queryParam(key,value));
+        queryparams.forEach((key, value) -> uriBuilder.queryParam(key, value));
         return uriBuilder.toUriString();
     }
 }
